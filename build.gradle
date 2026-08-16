@@ -11,11 +11,12 @@ plugins {
     id 'eclipse'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.darkhax.curseforgegradle' version '1.1.18'
 }
 
 apply plugin: 'org.spongepowered.mixin'
 
-version = '1.0.1-1.19'
+version = '1.0.2-1.19'
 group = 'net.celsiusqc.create_blue_skies_compat' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'create_blue_skies_compat'
 
@@ -195,4 +196,22 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn('reobfJar')
+    apiToken = findProperty('curseforge_token') ?: System.getenv('CURSEFORGE_TOKEN')
+
+    def mainFile = upload(860090, jar)
+    mainFile.displayName = "create_blue_skies_compat-${version}"
+    mainFile.releaseType = 'release'
+    mainFile.changelog = file('CHANGELOG.md').exists() ? file('CHANGELOG.md').text : 'See GitHub for changes.'
+    mainFile.changelogType = 'markdown'
+    mainFile.addModLoader('Forge')
+    mainFile.addGameVersion('1.19.2')
+    mainFile.addJavaVersion('Java 17')
+    mainFile.addGameVersion('Client')
+    mainFile.addGameVersion('Server')
+    mainFile.addRequirement('create')
+    mainFile.addRequirement('blue-skies')
 }
