@@ -14,6 +14,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'net.darkhax.curseforgegradle' version '1.1.18'
 }
 
 apply plugin: 'org.spongepowered.mixin'
@@ -285,4 +286,23 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn('reobfJar')
+    apiToken = findProperty('curseforge_token') ?: System.getenv('CURSEFORGE_TOKEN')
+
+    def mainFile = upload(860090, jar)
+    mainFile.displayName = "create_blue_skies_compat-${version}"
+    mainFile.releaseType = 'release'
+    mainFile.changelog = file('CHANGELOG.md').exists() ? file('CHANGELOG.md').text : 'See GitHub for changes.'
+    mainFile.changelogType = 'markdown'
+    mainFile.addModLoader('Forge')
+    mainFile.addModLoader('NeoForge')
+    mainFile.addGameVersion(minecraft_version)
+    mainFile.addJavaVersion('Java 17')
+    mainFile.addGameVersion('Client')
+    mainFile.addGameVersion('Server')
+    mainFile.addRequirement('create')
+    mainFile.addRequirement('blue-skies')
 }
